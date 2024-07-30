@@ -20,7 +20,7 @@ const config = {
                 '2xl': '6rem',
             },
             screens: {
-                "2xl": "1250px",
+                "2xl": "1400px",
             },
         },
         extend: {
