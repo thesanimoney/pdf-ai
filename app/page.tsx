@@ -29,7 +29,7 @@ async function Page() {
             <section>
                 <div
                     className={'shadow-sm rounded-2xl border-1 ring-inset ring-zinc-900/10 bg-orange-500/20 p-3 max-w-6xl overflow-hidden'}>
-                    <Image src={'/dashboard-preview.jpg'}
+                    <Image src={'/chat-zone.png'}
                            className={'rounded-xl ring-inset ring-zinc-600/10 p-2 bg-white shadow-md'} quality={100}
                            alt={'product preview'} width={1364} height={866}/>
                 </div>

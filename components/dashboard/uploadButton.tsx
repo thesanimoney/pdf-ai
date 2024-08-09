@@ -9,9 +9,10 @@ import UploadBadge from "@/components/uploadBadge";
 import {useState} from "react";
 import {Progress} from "@/components/ui/progress";
 import {toast} from "sonner";
-import {createPDFInDb} from "@/actions/pdf";
+import {createPDFInDbAndEmbeddings} from "@/actions/pdf";
 import {errorToast} from "@/components/ui/sonner";
 import {generateSignedURL} from "@/lib/generateSignedUrl";
+import axios from "axios";
 
 function UploadDropzone() {
     const [isUploading, setIsUploading] = useState<boolean>(false)
@@ -34,17 +35,14 @@ function UploadDropzone() {
 
     const uploadFormOnS3 = async (url: string, file: File[]) => {
         try {
-            await fetch(url, {
-                method: "PUT",
-                body: file[0],
-                headers: {
-                    contentType: "/application/pdf",
-                }
-            })
-
-        } catch {
+            return await axios.put(url, file[0], {headers: {
+                "Content-Type": file[0].type
+                }})
+        } catch (err) {
+            if (err instanceof Error) {
+                return console.error(err)
+            }
             setIsUploading(false)
-            return null
         }
     }
 
@@ -59,12 +57,13 @@ function UploadDropzone() {
             }
 
             const signURL = await generateSignedURL(acceptedFiles[0].name)
+
             if (signURL?.error) return toast.error(signURL.error, {style: {...errorToast}})
-            if (!signURL?.url) return toast.error('Something went wrong with uploading, please try again.')
+            if (!signURL?.url) return toast.error('Something went wrong with url generation, please try again.')
 
-            await uploadFormOnS3(signURL.url, acceptedFiles)
+            await uploadFormOnS3(signURL?.url, acceptedFiles)
 
-            await createPDFInDb(acceptedFiles[0].name, signURL.key, signURL.url.split('?')[0])
+            await createPDFInDbAndEmbeddings(acceptedFiles[0].name, signURL?.key, signURL?.url.split('?')[0])
 
             clearInterval(progress)
             setProgress(100)

@@ -4,9 +4,9 @@ import prisma from "@/prisma/client";
 import {revalidatePath} from "next/cache";
 import {auth} from "@/auth";
 import {DeleteObjectCommand} from "@aws-sdk/client-s3";
-
 import {redirect} from "next/navigation";
-import {s3} from "@/config/s3";
+import {s3} from "@/config/aws";
+import {createEmbeddings} from "@/actions/embeddings";
 
 export const deletePDFById = async (id: string) => {
     const session = auth()
@@ -27,6 +27,10 @@ export const deletePDFById = async (id: string) => {
 
         await s3.send(deleteCommand)
 
+        await prisma.message.deleteMany({
+            where: {fileDataId: id},
+        })
+
         revalidatePath('/dashboard')
         return {success: 'Successfully deleted!'}
 
@@ -36,7 +40,7 @@ export const deletePDFById = async (id: string) => {
 }
 
 
-export async function createPDFInDb(name: string, key: string, url: string) {
+export async function createPDFInDbAndEmbeddings(name: string, key: string, url: string) {
     const session = await auth()
     if (!session) return {error: 'unauthorized'};
 
@@ -45,9 +49,12 @@ export async function createPDFInDb(name: string, key: string, url: string) {
             userId: session?.user?.id as string,
             name: name,
             key: key,
-            url: url
+            url: url,
+            uploadStatus: 'PROCESSING'
         }
     })
+
+    await createEmbeddings(url, document.id)
 
     revalidatePath('/dashboard')
     redirect(`/dashboard/${document?.id}`)

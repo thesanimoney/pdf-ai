@@ -1,6 +1,5 @@
-import NextAuth from "next-auth"
 import authConfig from "@/auth.config";
-import {getUserByEmail} from "@/data/user";
+import NextAuth from "next-auth";
 
 export const {handlers, signIn, signOut, auth} = NextAuth({
     ...authConfig,
